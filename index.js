@@ -3,14 +3,13 @@ import { PORT, mongoDBURL } from "./config.js";
 import mongoose from "mongoose";
 import bookRoute from "./routes/bookRoute.js";
 import cors from "cors";
-
 const app = express();
 
 // middleware
 app.use(express.json());
 app.use(
   cors({
-    origin: "",
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type"],
   })
