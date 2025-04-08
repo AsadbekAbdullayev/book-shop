@@ -2,6 +2,8 @@ import express from "express";
 import { PORT, mongoDBURL } from "./config.js";
 import mongoose from "mongoose";
 import bookRoute from "./routes/bookRoute.js";
+import transactionRoute from "./routes/transactionRoute.js";
+import categoryRoute from "./routes/categoryRoute.js";
 import cors from "cors";
 const app = express();
 
@@ -15,6 +17,8 @@ app.use(
   })
 );
 app.use("/books", bookRoute);
+app.use("/transactions", transactionRoute);
+app.use("/category", categoryRoute);
 
 mongoose
   .connect(mongoDBURL)
