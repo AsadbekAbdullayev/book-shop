@@ -1,39 +1,40 @@
 import express from "express";
 import { Category } from "../models/categoryModel.js";
+
 const router = express.Router();
 
-// Route for Save a new category
+// Create a new category
 router.post("/", async (req, res) => {
   try {
-    const newCategory = {
-      label: req.body.label,
-      value: req.body.value,
-    };
+    const { label, value } = req.body;
 
-    const category = await Category.create(newCategory);
-    return res.status(201).send(category);
+    if (!label || !value) {
+      return res.status(400).json({ message: "Label and value are required" });
+    }
+
+    const category = await Category.create({ label, value });
+    res.status(201).json(category);
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error creating category:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Route for get all categories
-router.get("/", async (req, res) => {
+// Get all categories
+router.get("/", async (_req, res) => {
   try {
     const categories = await Category.find({});
-
-    return res.status(200).json({
+    res.status(200).json({
       count: categories.length,
       data: categories,
     });
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error fetching categories:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Route for get category by id
+// Get category by id
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -43,44 +44,47 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    return res.status(200).json(category);
+    res.status(200).json(category);
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error fetching category:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Route for update category
+// Update category
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await Category.findByIdAndUpdate(id, req.body, {
+    const updatedCategory = await Category.findByIdAndUpdate(id, req.body, {
       new: true,
+      runValidators: true,
     });
-    if (!result) {
+
+    if (!updatedCategory) {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    return res.status(200).send({ message: "Category edited", data: result });
+    res.status(200).json({ message: "Category updated", data: updatedCategory });
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error updating category:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Route for delete category
+// Delete category
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await Category.findByIdAndDelete(id);
-    if (!result) {
+    const deletedCategory = await Category.findByIdAndDelete(id);
+
+    if (!deletedCategory) {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    return res.status(200).send({ message: "Category deleted" });
+    res.status(200).json({ message: "Category deleted" });
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error deleting category:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
