@@ -3,90 +3,114 @@ import { Transaction } from "../models/transactionModel.js";
 
 const router = express.Router();
 
-// Route for Save a new transaction
+// Create a new transaction
 router.post("/", async (req, res) => {
   try {
-    const newTransaction = {
-      userId: req.body.userId,
-      bookId: req.body.bookId,
-      transactionDate: req.body.transactionDate,
-      returnDate: req.body.returnDate,
-      comment: req.body.comment,
-      category: req.body.category,
-      type: req.body.type,
-      amount: req.body.amount,
-      date: req.body.date,
-    };
+    const {
+      userId,
+      bookId,
+      transactionDate,
+      returnDate,
+      comment,
+      category,
+      type,
+      amount,
+      date,
+    } = req.body;
 
-    const transaction = await Transaction.create(newTransaction);
-    return res.status(201).send(transaction);
+    if (!userId || !bookId || !type || !amount) {
+      return res.status(400).json({
+        message: "userId, bookId, type, and amount are required",
+      });
+    }
+
+    const transaction = await Transaction.create({
+      userId,
+      bookId,
+      transactionDate,
+      returnDate,
+      comment,
+      category,
+      type,
+      amount,
+      date,
+    });
+
+    res.status(201).json(transaction);
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error creating transaction:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Route for get all transactions
-router.get("/", async (req, res) => {
+// Get all transactions
+router.get("/", async (_req, res) => {
   try {
     const transactions = await Transaction.find({});
-
-    return res.status(200).json({
+    res.status(200).json({
       count: transactions.length,
       data: transactions,
     });
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error fetching transactions:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Route for get transaction by id
+// Get transaction by ID
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const transaction = await Transaction.findById(id);
 
-    return res.status(200).json(transaction);
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    res.status(200).json(transaction);
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error fetching transaction:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Route for update transaction
+// Update transaction
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await Transaction.findByIdAndUpdate(id, req.body, {
+    const updatedTransaction = await Transaction.findByIdAndUpdate(id, req.body, {
       new: true,
+      runValidators: true,
     });
-    if (!result) {
+
+    if (!updatedTransaction) {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    return res
-      .status(200)
-      .send({ message: "Transaction edited", data: result });
+    res.status(200).json({
+      message: "Transaction updated",
+      data: updatedTransaction,
+    });
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error updating transaction:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Route for delete transaction
+// Delete transaction
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await Transaction.findByIdAndDelete(id);
-    if (!result) {
+    const deletedTransaction = await Transaction.findByIdAndDelete(id);
+
+    if (!deletedTransaction) {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    return res.status(200).send({ message: "Transaction deleted" });
+    res.status(200).json({ message: "Transaction deleted" });
   } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: error.message });
+    console.error("Error deleting transaction:", error.message);
+    res.status(500).json({ message: error.message });
   }
 });
 
